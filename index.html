@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game kotak</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        canvas {
+            border: 2px solid white;
+            background-color: #222;
+        }
+        .score {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        .instructions {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        audio {
+            display: none; /* Sembunyikan elemen audio */
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game menghindari rintangan</h1>
+    <p class="instructions">Gunakan panah kiri/kanan untuk gerakkan mobil. Hindari rintangan!</p>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div class="score">Skor: <span id="score">0</span></div>
+    
+    <!-- Kontrol musik sederhana (opsional, untuk toggle manual) -->
+    
+    <!-- Elemen audio dengan loop -->
+    <audio id="bgMusic" src="Backsound alur cerita di Facebook.mp3" autoplay loop></audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const bgMusic = document.getElementById('bgMusic'); // Referensi ke elemen audio
+
+        // Variabel game
+        let playerX = canvas.width / 2 - 25; // Posisi mobil pemain
+        const playerY = canvas.height - 80;
+        const playerWidth = 50;
+        const playerHeight = 80;
+        let obstacles = []; // Array rintangan
+        let score = 0;
+        let gameRunning = true;
+        const obstacleSpeed = 3;
+        const playerSpeed = 5;
+
+        // Fungsi toggle musik (opsional)
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        // Gambar mobil pemain
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+        }
+
+        // Gambar rintangan
+        function drawObstacles() {
+            ctx.fillStyle = 'red';
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+        }
+
+        // Update posisi rintangan
+        function updateObstacles() {
+            obstacles.forEach(obstacle => {
+                obstacle.y += obstacleSpeed;
+            });
+            // Hapus rintangan yang keluar layar
+            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height);
+            // Tambah rintangan baru secara acak
+            if (Math.random() < 0.02) {
+                const x = Math.random() * (canvas.width - 50);
+                obstacles.push({ x, y: -50, width: 50, height: 50 });
+            }
+        }
+
+        // Deteksi tabrakan
+        function checkCollision() {
+            for (let obstacle of obstacles) {
+                if (
+                    playerX < obstacle.x + obstacle.width &&
+                    playerX + playerWidth > obstacle.x &&
+                    playerY < obstacle.y + obstacle.height &&
+                    playerY + playerHeight > obstacle.y
+                ) {
+                    gameRunning = false;
+                    bgMusic.pause(); // Hentikan musik saat game over
+                    bgMusic.currentTime = 0; // Reset musik ke awal
+                    alert('Game Over! Skor akhir: ' + score);
+                    location.reload(); // Restart game
+                }
+            }
+        }
+
+        // Update skor
+        function updateScore() {
+            score++;
+            scoreElement.textContent = score;
+        }
+
+        // Loop game
+        function gameLoop() {
+            if (!gameRunning) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawObstacles();
+            updateObstacles();
+            checkCollision();
+            updateScore();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Kontrol keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && playerX > 0) {
+                playerX -= playerSpeed;
+            } else if (e.key === 'ArrowRight' && playerX < canvas.width - playerWidth) {
+                playerX += playerSpeed;
+            }
+        });
+
+        // Mulai game (musik sudah autoplay)
+        gameLoop();
+    </script>
+</body>
+</html>
