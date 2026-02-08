@@ -11,10 +11,15 @@
             background-color: #333;
             color: white;
             padding: 20px;
+            margin: 0; /* Hapus margin default untuk layar penuh */
         }
         canvas {
             border: 2px solid white;
             background-color: #222;
+            max-width: 100%; /* Responsif untuk HP */
+            height: auto;
+            display: block; /* Agar tidak ada space bawah */
+            margin: 0 auto; /* Tengah */
         }
         .score {
             font-size: 24px;
@@ -31,28 +36,55 @@
             margin-top: 10px;
         }
         button {
-            padding: 5px 10px;
-            margin: 0 5px;
+            padding: 10px 20px; /* Lebih besar untuk sentuh HP */
+            margin: 0 10px;
             cursor: pointer;
+            font-size: 18px;
+        }
+        .touch-controls {
+            margin-top: 20px;
+        }
+        .touch-controls button {
+            width: 100px; /* Lebar tombol untuk sentuh */
+            height: 50px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .touch-controls button:active {
+            background-color: #45a049; /* Efek saat diklik */
         }
     </style>
 </head>
 <body>
     <h1>Game menghindari rintangan</h1>
-    <p class="instructions">Gunakan panah kiri/kanan untuk gerakkan mobil. Hindari rintangan!</p>
+    <p class="instructions">Gunakan tombol kiri/kanan untuk gerakkan mobil. Hindari rintangan!</p>
     <canvas id="gameCanvas" width="400" height="600"></canvas>
     <div class="score">Skor: <span id="score">0</span></div>
     
-    <!-- Kontrol musik sederhana (opsional, untuk toggle manual) -->
+    <!-- Kontrol musik -->
+    <div class="controls">
+        <button onclick="toggleMusic()">Toggle Musik</button>
+    </div>
     
-    <!-- Elemen audio dengan loop -->
+    <!-- Kontrol sentuh untuk HP -->
+    <div class="touch-controls">
+        <button id="leftBtn">Kiri</button>
+        <button id="rightBtn">Kanan</button>
+    </div>
+    
+    <!-- Elemen audio -->
     <audio id="bgMusic" src="Backsound alur cerita di Facebook.mp3" autoplay loop></audio>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
-        const bgMusic = document.getElementById('bgMusic'); // Referensi ke elemen audio
+        const bgMusic = document.getElementById('bgMusic');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
 
         // Variabel game
         let playerX = canvas.width / 2 - 25; // Posisi mobil pemain
@@ -65,7 +97,7 @@
         const obstacleSpeed = 3;
         const playerSpeed = 5;
 
-        // Fungsi toggle musik (opsional)
+        // Fungsi toggle musik
         function toggleMusic() {
             if (bgMusic.paused) {
                 bgMusic.play();
@@ -73,6 +105,24 @@
                 bgMusic.pause();
             }
         }
+
+        // Kontrol sentuh (untuk HP)
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Cegah scroll default
+            if (playerX > 0) playerX -= playerSpeed;
+        });
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (playerX < canvas.width - playerWidth) playerX += playerSpeed;
+        });
+
+        // Kontrol klik (jika mouse di desktop)
+        leftBtn.addEventListener('mousedown', () => {
+            if (playerX > 0) playerX -= playerSpeed;
+        });
+        rightBtn.addEventListener('mousedown', () => {
+            if (playerX < canvas.width - playerWidth) playerX += playerSpeed;
+        });
 
         // Gambar mobil pemain
         function drawPlayer() {
@@ -112,8 +162,8 @@
                     playerY + playerHeight > obstacle.y
                 ) {
                     gameRunning = false;
-                    bgMusic.pause(); // Hentikan musik saat game over
-                    bgMusic.currentTime = 0; // Reset musik ke awal
+                    bgMusic.pause(); // Hentikan musik
+                    bgMusic.currentTime = 0; // Reset musik
                     alert('Game Over! Skor akhir: ' + score);
                     location.reload(); // Restart game
                 }
@@ -138,7 +188,7 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Kontrol keyboard
+        // Kontrol keyboard (untuk desktop)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerX > 0) {
                 playerX -= playerSpeed;
@@ -147,7 +197,7 @@
             }
         });
 
-        // Mulai game (musik sudah autoplay)
+        // Mulai game
         gameLoop();
     </script>
 </body>
