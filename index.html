@@ -1,239 +1,235 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game kotak</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            margin: 0; /* Hapus margin default untuk layar penuh */
-        }
-        canvas {
-            border: 2px solid white;
-            background-color: #222;
-            max-width: 100%; /* Responsif untuk HP */
-            height: auto;
-            display: block; /* Agar tidak ada space bawah */
-            margin: 0 auto; /* Tengah */
-            display: none; /* Sembunyikan canvas di awal */
-        }
-        .score {
-            font-size: 24px;
-            margin-top: 20px;
-            display: none; /* Sembunyikan skor di awal */
-        }
-        .instructions {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        audio {
-            display: none; /* Sembunyikan elemen audio */
-        }
-        .controls {
-            margin-top: 10px;
-        }
-        button {
-            padding: 10px 20px; /* Lebih besar untuk sentuh HP */
-            margin: 0 10px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        .touch-controls {
-            margin-top: 20px;
-            display: none; /* Sembunyikan kontrol sentuh di awal */
-        }
-        .touch-controls button {
-            width: 100px; /* Lebar tombol untuk sentuh */
-            height: 50px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        .touch-controls button:active {
-            background-color: #45a049; /* Efek saat diklik */
-        }
-        #playBtn {
-            font-size: 24px;
-            padding: 15px 30px;
-            background-color: #FF5722;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        #playBtn:hover {
-            background-color: #E64A19;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Mobil Hindari Rintangan</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #333;
+        color: white;
+        margin: 0;
+        padding: 10px;
+    }
+
+    canvas {
+        border: 2px solid white;
+        background-color: #222;
+        display: none; /* disembunyikan sebelum play */
+        margin: auto;
+    }
+
+    .score {
+        font-size: 18px;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .controls {
+        margin-top: 15px;
+        display: none;
+    }
+
+    button {
+        font-size: 20px;
+        padding: 12px 25px;
+        margin: 10px;
+        border: none;
+        border-radius: 8px;
+        background-color: #1e90ff;
+        color: white;
+    }
+
+    button:active {
+        background-color: #0f5fa8;
+    }
+
+    #playScreen {
+        margin-top: 100px;
+    }
+
+    audio {
+        display: none;
+    }
+</style>
 </head>
 <body>
-    <h1>Game menghindari rintangan</h1>
-    <p class="instructions">Tekan tombol Play untuk mulai. Gunakan tombol kiri/kanan untuk gerakkan kotak mu. Hindari rintangan!</p>
-    
-    <!-- Tombol Play -->
-    <button id="playBtn">Play</button>
-    
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div class="score">Skor: <span id="score">0</span></div>
-    
-    <!-- Kontrol musik -->
-    <div class="controls">
-        <button onclick="toggleMusic()">Toggle Musik</button>
-    </div>
-    
-    <!-- Kontrol sentuh untuk HP -->
-    <div class="touch-controls">
-        <button id="leftBtn">Kiri</button>
-        <button id="rightBtn">Kanan</button>
-    </div>
-    
-    <!-- Elemen audio -->
-    <audio id="bgMusic" src="Backsound alur cerita di Facebook.mp3" loop></audio>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
-        const bgMusic = document.getElementById('bgMusic');
-        const leftBtn = document.getElementById('leftBtn');
-        const rightBtn = document.getElementById('rightBtn');
-        const playBtn = document.getElementById('playBtn');
-        const touchControls = document.querySelector('.touch-controls');
-        const scoreDiv = document.querySelector('.score');
+<h2>Game Mobil</h2>
 
-        // Variabel game
-        let playerX = canvas.width / 2 - 25; // Posisi mobil pemain
-        const playerY = canvas.height - 80;
-        const playerWidth = 50;
-        const playerHeight = 80;
-        let obstacles = []; // Array rintangan
-        let score = 0;
-        let gameRunning = false; // Game belum dimulai
-        const obstacleSpeed = 3;
-        const playerSpeed = 5;
+<!-- SCREEN PLAY -->
+<div id="playScreen">
+    <p>Tekan tombol untuk mulai bermain 🚗</p>
+    <button id="playBtn">▶️ PLAY</button>
+</div>
 
-        // Fungsi toggle musik
-        function toggleMusic() {
-            if (bgMusic.paused) {
-                bgMusic.play();
-            } else {
-                bgMusic.pause();
+<!-- GAME -->
+<canvas id="gameCanvas" width="360" height="540"></canvas>
+
+<div class="score">
+    Skor: <span id="score">0</span> |
+    High Score: <span id="highScore">0</span>
+</div>
+
+<div class="controls">
+    <button id="leftBtn">⬅️</button>
+    <button id="rightBtn">➡️</button>
+</div>
+
+<audio id="bgMusic" src="Backsound alur cerita di Facebook.mp3" loop></audio>
+
+<script>
+/* ===== SETUP ===== */
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const scoreEl = document.getElementById("score");
+const highScoreEl = document.getElementById("highScore");
+const bgMusic = document.getElementById("bgMusic");
+
+const playBtn = document.getElementById("playBtn");
+const playScreen = document.getElementById("playScreen");
+const scoreBox = document.querySelector(".score");
+const controls = document.querySelector(".controls");
+
+/* ===== VARIABEL GAME ===== */
+const playerWidth = 50;
+const playerHeight = 80;
+let playerX, playerY;
+let playerSpeed = 10;
+
+let obstacles = [];
+let obstacleSpeed = 3;
+
+let score = 0;
+let gameRunning = false;
+
+let highScore = localStorage.getItem("highScore") || 0;
+highScoreEl.textContent = highScore;
+
+/* ===== GAMBAR MOBIL ===== */
+function drawPlayer() {
+    ctx.fillStyle = "#1e90ff";
+    ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+
+    ctx.fillStyle = "#b0e0ff";
+    ctx.fillRect(playerX + 8, playerY + 10, playerWidth - 16, 20);
+    ctx.fillRect(playerX + 8, playerY + playerHeight - 30, playerWidth - 16, 15);
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(playerX - 5, playerY + 15, 5, 20);
+    ctx.fillRect(playerX - 5, playerY + playerHeight - 35, 5, 20);
+    ctx.fillRect(playerX + playerWidth, playerY + 15, 5, 20);
+    ctx.fillRect(playerX + playerWidth, playerY + playerHeight - 35, 5, 20);
+}
+
+/* ===== RINTANGAN ===== */
+function drawObstacles() {
+    ctx.fillStyle = "red";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.width, o.height);
+    });
+}
+
+function updateObstacles() {
+    obstacles.forEach(o => o.y += obstacleSpeed);
+    obstacles = obstacles.filter(o => o.y < canvas.height);
+
+    if (Math.random() < 0.03) {
+        const size = 50;
+        obstacles.push({
+            x: Math.random() * (canvas.width - size),
+            y: -size,
+            width: size,
+            height: size
+        });
+    }
+}
+
+/* ===== TABRAKAN ===== */
+function checkCollision() {
+    for (let o of obstacles) {
+        if (
+            playerX < o.x + o.width &&
+            playerX + playerWidth > o.x &&
+            playerY < o.y + o.height &&
+            playerY + playerHeight > o.y
+        ) {
+            gameRunning = false;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem("highScore", highScore);
             }
+
+            bgMusic.pause();
+            alert(`GAME OVER\nSkor: ${score}\nHigh Score: ${highScore}`);
+            location.reload();
         }
+    }
+}
 
-        // Kontrol sentuh (untuk HP)
-        leftBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Cegah scroll default
-            if (gameRunning && playerX > 0) playerX -= playerSpeed;
-        });
-        rightBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (gameRunning && playerX < canvas.width - playerWidth) playerX += playerSpeed;
-        });
+/* ===== SKOR ===== */
+function updateScore() {
+    score++;
+    scoreEl.textContent = score;
+}
 
-        // Kontrol klik (jika mouse di desktop)
-        leftBtn.addEventListener('mousedown', () => {
-            if (gameRunning && playerX > 0) playerX -= playerSpeed;
-        });
-        rightBtn.addEventListener('mousedown', () => {
-            if (gameRunning && playerX < canvas.width - playerWidth) playerX += playerSpeed;
-        });
+/* ===== GAME LOOP ===== */
+function gameLoop() {
+    if (!gameRunning) return;
 
-        // Tombol Play
-        playBtn.addEventListener('click', () => {
-            gameRunning = true;
-            canvas.style.display = 'block'; // Tampilkan canvas
-            scoreDiv.style.display = 'block'; // Tampilkan skor
-            touchControls.style.display = 'block'; // Tampilkan kontrol sentuh
-            playBtn.style.display = 'none'; // Sembunyikan tombol Play
-            bgMusic.play(); // Mulai musik
-            gameLoop(); // Mulai game loop
-        });
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Gambar mobil pemain
-        function drawPlayer() {
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
-        }
+    drawPlayer();
+    drawObstacles();
+    updateObstacles();
+    checkCollision();
+    updateScore();
 
-        // Gambar rintangan
-        function drawObstacles() {
-            ctx.fillStyle = 'red';
-            obstacles.forEach(obstacle => {
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            });
-        }
+    requestAnimationFrame(gameLoop);
+}
 
-        // Update posisi rintangan
-        function updateObstacles() {
-            obstacles.forEach(obstacle => {
-                obstacle.y += obstacleSpeed;
-            });
-            // Hapus rintangan yang keluar layar
-            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height);
-            // Tambah rintangan baru secara acak
-            if (Math.random() < 0.02) {
-                const x = Math.random() * (canvas.width - 50);
-                obstacles.push({ x, y: -50, width: 50, height: 50 });
-            }
-        }
+/* ===== PLAY BUTTON ===== */
+playBtn.addEventListener("click", () => {
+    playScreen.style.display = "none";
+    canvas.style.display = "block";
+    scoreBox.style.display = "block";
+    controls.style.display = "block";
 
-        // Deteksi tabrakan
-        function checkCollision() {
-            for (let obstacle of obstacles) {
-                if (
-                    playerX < obstacle.x + obstacle.width &&
-                    playerX + playerWidth > obstacle.x &&
-                    playerY < obstacle.y + obstacle.height &&
-                    playerY + playerHeight > obstacle.y
-                ) {
-                    gameRunning = false;
-                    bgMusic.pause(); // Hentikan musik
-                    bgMusic.currentTime = 0; // Reset musik
-                    alert('Game Over! Skor akhir: ' + score);
-                    location.reload(); // Restart game
-                }
-            }
-        }
+    playerX = canvas.width / 2 - playerWidth / 2;
+    playerY = canvas.height - playerHeight - 10;
+    obstacles = [];
+    score = 0;
 
-        // Update skor
-        function updateScore() {
-            score++;
-            scoreElement.textContent = score;
-        }
+    bgMusic.play();       // musik mulai
+    gameRunning = true;   // game mulai
+    gameLoop();
+});
 
-        // Loop game
-        function gameLoop() {
-            if (!gameRunning) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawPlayer();
-            drawObstacles();
-            updateObstacles();
-            checkCollision();
-            updateScore();
-            requestAnimationFrame(gameLoop);
-        }
+/* ===== KEYBOARD ===== */
+document.addEventListener("keydown", e => {
+    if (!gameRunning) return;
+    if (e.key === "ArrowLeft" && playerX > 0) playerX -= playerSpeed;
+    if (e.key === "ArrowRight" && playerX < canvas.width - playerWidth)
+        playerX += playerSpeed;
+});
 
-        // Kontrol keyboard (untuk desktop)
-        document.addEventListener('keydown', (e) => {
-            if (gameRunning) {
-                if (e.key === 'ArrowLeft' && playerX > 0) {
-                    playerX -= playerSpeed;
-                } else if (e.key === 'ArrowRight' && playerX < canvas.width - playerWidth) {
-                    playerX += playerSpeed;
-                }
-            }
-        });
+/* ===== TOUCH (HP) ===== */
+leftBtn.addEventListener("touchstart", e => {
+    e.preventDefault();
+    if (playerX > 0) playerX -= playerSpeed * 2;
+});
 
-        // Game tidak dimulai otomatis
-    </script>
+rightBtn.addEventListener("touchstart", e => {
+    e.preventDefault();
+    if (playerX < canvas.width - playerWidth)
+        playerX += playerSpeed * 2;
+});
+</script>
+
 </body>
 </html>
-
